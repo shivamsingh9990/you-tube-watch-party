@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import socket from "../socket/socket";
+import socket from "../socket/Socket";
 
 import VideoPlayer from "../components/VideoPlayer";
 import ParticipantsSidebar from "../components/ParticipantsSidebar";
