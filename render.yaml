@@ -1,0 +1,19 @@
+# Render Blueprint: frontend static site (backend is already deployed separately)
+# https://you-tube-watch-party-2.onrender.com = API + Socket.io
+#
+# Create the static site manually if you prefer:
+#   Root Directory: client
+#   Build Command: npm install && npm run build
+#   Publish Directory: dist
+#   Env: VITE_API_URL=https://you-tube-watch-party-2.onrender.com
+
+services:
+  - type: web
+    name: watch-party-frontend
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://you-tube-watch-party-2.onrender.com

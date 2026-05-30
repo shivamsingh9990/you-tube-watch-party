@@ -7,9 +7,11 @@ const roomSocket = require("./sockets/roomSocket");
 
 const server = http.createServer(app);
 
+const corsOrigin = process.env.CLIENT_URL || "*";
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: corsOrigin,
   },
 });
 
@@ -23,6 +25,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

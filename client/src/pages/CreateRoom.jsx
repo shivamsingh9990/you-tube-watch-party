@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import MeetingLinkShare from "../components/MeetingLinkShare";
+import { getApiUrl } from "../config/api";
 
 function CreateRoom() {
   const navigate = useNavigate();
@@ -11,12 +12,9 @@ function CreateRoom() {
   const createRoom = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/rooms/create-room",
-        {
-          method: "POST",
-        },
-      );
+      const response = await fetch(getApiUrl("/api/rooms/create-room"), {
+        method: "POST",
+      });
 
       const data = await response.json();
       setCreatedRoomId(data.roomId);
