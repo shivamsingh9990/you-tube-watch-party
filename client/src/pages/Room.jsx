@@ -6,6 +6,7 @@ import socket from "../socket/Socket";
 import VideoPlayer from "../components/VideoPlayer";
 import ParticipantsSidebar from "../components/ParticipantsSidebar";
 import MeetingLinkShare from "../components/MeetingLinkShare";
+import { getApiUrl } from "../config/api";
 import "./Room.css";
 
 function normalizeYouTubeUrl(url) {
@@ -58,6 +59,8 @@ function Room() {
   const [syncOffset, setSyncOffset] = useState(0);
   const [hostTime, setHostTime] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState("connected");
+  const [roomStatus, setRoomStatus] = useState("checking");
+  const [roomStatusMessage, setRoomStatusMessage] = useState("");
   const playerRef = useRef(null);
   const queuedSeekRef = useRef(null);
   const pingStartRef = useRef(null);
@@ -112,12 +115,53 @@ function Room() {
   };
 
   const joinRoom = () => {
-    if (!username.trim()) return;
+    if (!username.trim() || roomStatus === "missing") return;
 
     persistSession(username.trim());
-    emitJoinRoom(username);
     setJoined(true);
+
+    const doJoin = () => emitJoinRoom(username);
+    if (socket.connected) {
+      doJoin();
+    } else {
+      socket.once("connect", doJoin);
+      socket.connect();
+    }
   };
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    let cancelled = false;
+
+    async function checkRoom() {
+      setRoomStatus("checking");
+      setRoomStatusMessage("");
+      try {
+        const res = await fetch(getApiUrl(`/api/rooms/${encodeURIComponent(roomId)}`));
+        if (cancelled) return;
+        if (res.ok) {
+          setRoomStatus("ready");
+          return;
+        }
+        setRoomStatus("missing");
+        setRoomStatusMessage(
+          "This room does not exist or the server was restarted. Ask the host for a new link.",
+        );
+      } catch {
+        if (cancelled) return;
+        setRoomStatus("error");
+        setRoomStatusMessage(
+          "Could not reach the server. Check your connection and try again.",
+        );
+      }
+    }
+
+    checkRoom();
+    return () => {
+      cancelled = true;
+    };
+  }, [roomId]);
 
   const isHost = role === "host";
 
@@ -436,6 +480,12 @@ function Room() {
             <h1>Join the party</h1>
             <span className="room-code">Room {roomId}</span>
             <MeetingLinkShare roomId={roomId} variant="join" />
+            {roomStatus === "checking" && (
+              <p className="room-join-status">Checking room…</p>
+            )}
+            {roomStatusMessage && (
+              <p className="room-error room-join-status">{roomStatusMessage}</p>
+            )}
             <div className="room-join-form">
               <input
                 className="room-input"
@@ -450,7 +500,7 @@ function Room() {
                 type="button"
                 className="room-btn room-btn--primary"
                 onClick={joinRoom}
-                disabled={!username.trim()}
+                disabled={!username.trim() || roomStatus !== "ready"}
               >
                 Enter room
               </button>

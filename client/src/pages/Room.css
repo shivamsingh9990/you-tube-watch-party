@@ -56,6 +56,12 @@
   margin-top: 8px;
 }
 
+.room-join-status {
+  margin: 12px 0 0;
+  font-size: 14px;
+  text-align: center;
+}
+
 .join-room-page .room-input {
   margin-bottom: 4px;
 }

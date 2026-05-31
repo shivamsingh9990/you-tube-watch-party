@@ -23,4 +23,12 @@ router.post("/create-room", (req, res) => {
   });
 });
 
+router.get("/:roomId", (req, res) => {
+  const room = rooms[req.params.roomId];
+  if (!room) {
+    return res.status(404).json({ exists: false, roomId: req.params.roomId });
+  }
+  return res.json({ exists: true, roomId: room.roomId });
+});
+
 module.exports = router;

@@ -13,9 +13,11 @@ function JoinRoom() {
   useEffect(() => {
     const fromQuery = searchParams.get("room") || searchParams.get("id");
     if (fromQuery) {
-      setRoomId(fromQuery.trim());
+      const id = fromQuery.trim();
+      setRoomId(id);
+      navigate(`/room/${encodeURIComponent(id)}`, { replace: true });
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const joinRoom = () => {
     const id = roomId.trim();

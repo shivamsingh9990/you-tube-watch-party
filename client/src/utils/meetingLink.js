@@ -1,7 +1,27 @@
+export function getAppOrigin() {
+  const fromEnv = import.meta.env.VITE_APP_URL?.trim();
+  if (fromEnv) {
+    return fromEnv.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin.replace(/\/$/, "");
+  }
+  return "";
+}
+
 export function getMeetingLink(roomId) {
   const id = String(roomId || "").trim();
-  if (!id) return "";
-  return `${window.location.origin}/room/${encodeURIComponent(id)}`;
+  const origin = getAppOrigin();
+  if (!id || !origin) return "";
+  return `${origin}/room/${encodeURIComponent(id)}`;
+}
+
+/** Fallback link format — also handled by JoinRoom */
+export function getJoinPageLink(roomId) {
+  const id = String(roomId || "").trim();
+  const origin = getAppOrigin();
+  if (!id || !origin) return "";
+  return `${origin}/join?room=${encodeURIComponent(id)}`;
 }
 
 /** Extract room id from a pasted code or full meeting URL */
@@ -24,6 +44,20 @@ export function parseRoomIdFromInput(value) {
       if (fallback?.[1]) {
         return decodeURIComponent(fallback[1]);
       }
+    }
+  }
+
+  if (trimmed.includes("room=")) {
+    try {
+      const url = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)
+        ? trimmed
+        : `https://${trimmed}`;
+      const parsed = new URL(url);
+      const fromQuery = parsed.searchParams.get("room") || parsed.searchParams.get("id");
+      if (fromQuery) return fromQuery.trim();
+    } catch {
+      const fallback = trimmed.match(/[?&]room=([^&\s#]+)/);
+      if (fallback?.[1]) return decodeURIComponent(fallback[1]);
     }
   }
 
